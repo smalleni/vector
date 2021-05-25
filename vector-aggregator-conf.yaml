@@ -24,29 +24,14 @@ data:
       type                                 = "swimlanes"
       inputs                               = ["vector_tcp"]
 
-
-    [transforms.swimlanes.lanes.audit_logs]
-      type                                 = "check_fields"
-      "file.ends_with"                     = "apiserver/audit.log"
-
-
-    [transforms.parse_audit_logs]
-      type                                 = "json_parser"
-      inputs                               = ["swimlanes.audit_logs"]
-
-
     [transforms.swimlanes.lanes.kubernetes_logs]
       type                                 = "check_fields"
       "file.starts_with"                   = "/var/log/pods/"
 
 
-    [sinks.elasticsearch]
-      type                                 = "elasticsearch"
-      inputs                               = ["swimlanes.kubernetes_logs", "parse_audit_logs"]
-      compression                          = "none"
-      endpoint                             = "https://xxxxxxxxxx"
-      auth.user                            = "xxxxxxx"
-      auth.password                        = "xxxxxxx"
-      auth.strategy                        = "basic"
-      index                                = "{{ kubernetes.pod_namespace }}-%Y-%m-%d"
-
+    [sinks.kafka]
+      type = "kafka"
+      inputs = ["swimlanes.kubernetes_logs"]
+      bootstrap_servers = "my-cluster-kafka-bootstrap.amq:9092"
+      topic = "vector-topic"
+      encoding.codec = "json"
